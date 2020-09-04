@@ -19,10 +19,12 @@ const DATA_URL = HRS_URL * "content/data/"
 const HEADER_DELIM = "#"
 
 const URL_SUFFIXES = OrderedDict(
+    # Daily
     "daily data" => "daily_ts",
     "daily flow duration curve" => "daily_fdc_linear",
     "event frequency analysis" => "daily_event_histogram_frequency",
     "event volume analysis" => "daily_event_histogram_volume",
+    # Monthly
     "january data" => "monthly_total_01",
     "february data" => "monthly_total_02",
     "march data" => "monthly_total_03",
@@ -49,6 +51,7 @@ const URL_SUFFIXES = OrderedDict(
     "november anomaly" => "monthly_anomaly_11",
     "december anomaly" => "monthly_anomaly_12",
     "monthly boxplot" => "monthly_boxplot",
+    # Seasonal
     "summer data" => "seasonal_total_Summer",
     "autumn data" => "seasonal_total_Autumn",
     "winter data" => "seasonal_total_Winter",
@@ -59,6 +62,7 @@ const URL_SUFFIXES = OrderedDict(
     "winter anomaly" => "seasonal_anomaly_Winter",
     "spring anomaly" => "seasonal_anomaly_Spring",
     "seasonal boxplot" => "seasonal_boxplot",
+    # Annual
     "cease to flow" => "annual_total_cease_to_flow",
     "annual data" => "annual_total",
     "annual anomaly" => "annual_anomaly",
@@ -66,6 +70,8 @@ const URL_SUFFIXES = OrderedDict(
     "5 year moving average" => "annual_anomaly_5MA",
     "11 year moving average" => "annual_anomaly_11MA"
 )
+
+const TSCALE2IDX = (all=1:46, day=1:4, month=5:30, season=31:40, year=41:46)
 
 const COMPOSITE_DATA_ATTRS = Dict(
     "seasonal data" => Dict(
@@ -113,10 +119,14 @@ function get_sites()::Tuple{DataFrame,Array{String,1}}
 end
 
 """
-    data_types = get_data_types()
+    data_types = get_data_types([tscale::AbstractString])
 
 Return an array of supported data types. Note that "monthly data" and "seasonal data" are
 used to return a time series of all monthly data (or seasonal data).
+
+# Arguments
+* `tscale`: Temporal scale. ["all", "day", "month", "season", "year"].
+            The default value is "all".
 
 # Examples
 ```julia
@@ -129,8 +139,12 @@ julia> get_data_types()
 ...
 ```
 """
-function get_data_types()::Array{String,1}
-    return collect(keys(URL_SUFFIXES))
+function get_data_types(tscale::AbstractString="all")::Array{String,1}
+    the_tscale = Symbol(tscale)
+    the_tscale in keys(TSCALE2IDX) || throw(ArgumentError("Invalid time scale: $(tscale)"))
+
+    data_types = collect(keys(URL_SUFFIXES))
+    return data_types[TSCALE2IDX[the_tscale]]
 end
 
 """
