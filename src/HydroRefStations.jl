@@ -19,12 +19,12 @@ const DATA_URL = HRS_URL * "content/data/"
 const HEADER_DELIM = "#"
 
 const URL_SUFFIXES = OrderedDict(
-    # Daily
     "daily data" => "daily_ts",
     "daily flow duration curve" => "daily_fdc_linear",
     "event frequency analysis" => "daily_event_histogram_frequency",
     "event volume analysis" => "daily_event_histogram_volume",
-    # Monthly
+
+    "monthly data" => "",
     "january data" => "monthly_total_01",
     "february data" => "monthly_total_02",
     "march data" => "monthly_total_03",
@@ -37,7 +37,6 @@ const URL_SUFFIXES = OrderedDict(
     "october data" => "monthly_total_10",
     "november data" => "monthly_total_11",
     "december data" => "monthly_total_12",
-    "monthly data" => "",
     "january anomaly" => "monthly_anomaly_01",
     "february anomaly" => "monthly_anomaly_02",
     "march anomaly" => "monthly_anomaly_03",
@@ -51,27 +50,30 @@ const URL_SUFFIXES = OrderedDict(
     "november anomaly" => "monthly_anomaly_11",
     "december anomaly" => "monthly_anomaly_12",
     "monthly boxplot" => "monthly_boxplot",
-    # Seasonal
+
+    "seasonal data" => "",
     "summer data" => "seasonal_total_Summer",
     "autumn data" => "seasonal_total_Autumn",
     "winter data" => "seasonal_total_Winter",
     "spring data" => "seasonal_total_Spring",
-    "seasonal data" => "",
     "summer anomaly" => "seasonal_anomaly_Summer",
     "autumn anomaly" => "seasonal_anomaly_Autumn",
     "winter anomaly" => "seasonal_anomaly_Winter",
     "spring anomaly" => "seasonal_anomaly_Spring",
     "seasonal boxplot" => "seasonal_boxplot",
-    # Annual
-    "cease to flow" => "annual_total_cease_to_flow",
+
     "annual data" => "annual_total",
+    "cease to flow" => "annual_total_cease_to_flow",
     "annual anomaly" => "annual_anomaly",
     "3 year moving average" => "annual_anomaly_3MA",
     "5 year moving average" => "annual_anomaly_5MA",
     "11 year moving average" => "annual_anomaly_11MA"
 )
 
-const TSCALE2IDX = (all=1:46, day=1:4, month=5:30, season=31:40, year=41:46)
+const DATA_TYPES = collect(keys(URL_SUFFIXES))
+const IMONTH = findfirst(isequal("monthly data"), DATA_TYPES)
+const ISEASON = findfirst(isequal("seasonal data"), DATA_TYPES)
+const IYEAR = findfirst(isequal("annual data"), DATA_TYPES)
 
 const COMPOSITE_DATA_ATTRS = Dict(
     "seasonal data" => Dict(
@@ -140,11 +142,19 @@ julia> get_data_types()
 ```
 """
 function get_data_types(tscale::AbstractString="all")::Array{String,1}
-    the_tscale = Symbol(tscale)
-    the_tscale in keys(TSCALE2IDX) || throw(ArgumentError("Invalid time scale: $(tscale)"))
-
-    data_types = collect(keys(URL_SUFFIXES))
-    return data_types[TSCALE2IDX[the_tscale]]
+    if tscale == "all"
+        return DATA_TYPES
+    elseif tscale == "day"
+        return DATA_TYPES[1:IMONTH-1]
+    elseif tscale == "month"
+        return DATA_TYPES[IMONTH:ISEASON-1]
+    elseif tscale == "season"
+        return DATA_TYPES[ISEASON:IYEAR-1]
+    elseif tscale == "year"
+        return DATA_TYPES[IYEAR:end]
+    else
+        throw(ArgumentError("Invalid time scale: $(tscale)"))
+    end
 end
 
 """
@@ -171,7 +181,7 @@ julia> data
 """
 function get_data(awrc_id::AbstractString,
                   data_type::AbstractString)::Tuple{DataFrame,Array{String,1}}
-    if data_type ∉ keys(URL_SUFFIXES)
+    if data_type ∉ DATA_TYPES
         throw(ArgumentError("Unsupported data type, $(data_type)."))
     else
         url_suffix = URL_SUFFIXES[data_type]
