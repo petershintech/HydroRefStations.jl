@@ -267,9 +267,9 @@ function extract_header!(body_buf::Base.GenericIOBuffer{Array{UInt8,1}},
 end
 
 """
-    new_header = parser_header(header::AbstractString, delim::AbstractString)
+    new_header = prune_header(header::AbstractString, delim::AbstractString)
 
-Parse the extracted header document. It drops blank lines and double quotations from the raw document.
+Prune the extracted header document. It drops blank lines and double quotations from the raw document.
 """
 function prune_header(header::Array{String,1}, delim::AbstractString)::Array{String,1}
     new_header = String[]
