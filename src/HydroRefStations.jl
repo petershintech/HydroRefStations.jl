@@ -278,12 +278,12 @@ function prune_header(header::Array{String,1}, delim::AbstractString)::Array{Str
         startswith(line, delim) || throw(IOError("A header line does not start with $(delim)."))
 
         the_line = rstrip(line[2:end])
-        if length(the_line) <= 0; continue end
+        length(the_line) <= 0 && continue
         istart = 1
         i = findfirst('\"', the_line)
-        if !isnothing(i); istart = i+1 end
+        (i != nothing) && (istart = i+1)
         iend = length(the_line)
-        if the_line[end] == '\"'; iend -= 1 end
+        (the_line[end] == '\"') && (iend -= 1)
 
         push!(new_header, the_line[istart:iend])
     end
