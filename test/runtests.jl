@@ -12,6 +12,8 @@ using Dates: Day
         @test nrows > 0 # At least one site.
         @test ncols > 0 # At least one column.
         @test length(header) > 0 # At least one header line
+        @test header[1][1] != '#'
+        @test header[1][1] != ','
         @test header[end][1] != '#'
         @test header[end][end] != '\"'
     end
