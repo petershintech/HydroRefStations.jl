@@ -23,30 +23,68 @@ pkg> add http://github.com/petershintech/HydroRefStations.jl
 And load the package using the command:
 
 ````julia
-using HydroRefStations
+julia> using HydroRefStations
 ````
 
-## Site Information
+## Site Information and Data Types
+
+When you create an instance of the `HRS` structure, it downloads
+site information, header and also stores available data types.
 
 ````julia
-sites, header = get_sites()
+julia> hrs = HRS();
 ````
 
-## Data Types
+Once it is instantiated, the fields of `hrs` should be considered as read-only so don't try to change any values of the fields.
 
-`get_data_types()` returns all available data types as an array of strings. For instance, `"daily data"` is used to download daily streamflow data and `"annual total"` is used to download annual total streamflow data.
+### Site Information
+
+`hrs.sites` has site information including AWRC ID, description and locations.
 
 ````julia
-data_types = get_data_types()
+julia> hrs.sites
+467×8 DataFrame. Omitted printing of 5 columns
+│ Row │ AWRC Station Number │ Station Name                                 │ Latitude │
+│     │ String              │ String                                       │ Float64  │
+├─────┼─────────────────────┼──────────────────────────────────────────────┼──────────┤
+│ 1   │ 410713              │ Paddy's River at Riverlea                    │ -35.3843 │
+│ 2   │ 410730              │ Cotter River at Gingera                      │ -35.5917 │
+│ 3   │ 410731              │ Gudgenby River at 
+...
+`````
+
+`hrs.header` shows the header of the site information. It includes the URL of the website and the version of data available.
+
+````julia
+julia> hrs.header
+6-element Array{String,1}:
+ "Australian Bureau of Meteorology"
+ "Hydrologic Reference Stations"
+ "Dataset version: August, 2020"
+...
+`````
+
+### Data Types
+
+`hrs.data_types` returns all available data types. For instance, `"daily data"` is used to download daily streamflow data and `"annual data"` is about annual total streamflow data.
+
+````julia
+julia> hrs.data_types
+Dict{String,Array{String,1}} with 4 entries:
+  "day"    => ["daily data", "daily flow duration curve", "event frequency analysis", "event vo…
+  "month"  => ["monthly data", "january data", "february data", "march data", "april data", "ma…
+  "year"   => ["annual data", "cease to flow", "annual anomaly", "3 year moving average", "5 ye…
+  "season" => ["seasonal data", "summer data", "autumn data", "winter data", "spring data", "su…
+
 ````
 
 ## Data
 
-`get_data()` returns data  as `DataFrames.DataFrame`. The method needs AWRC ID and data type. The AWRC ID of a station can be found in the site information from `get_sites()` and the string of a data type can be found in the array of data types from `get_data_types()`.
+`get_data()` returns data as `DataFrames.DataFrame`. The method needs AWRC ID and data type. The AWRC ID of a station can be found in `hrs.sites` and the string of a data type can be found in the array from `hrs.data_types`.
 
 ````julia
-awrc_id = "410730"
-data, header = get_data(awrc_id, "daily data")
+awrc_id = "410730";
+data, header = get_data(hrs, awrc_id, "daily data")
 ````
 
 ## Disclaimer
