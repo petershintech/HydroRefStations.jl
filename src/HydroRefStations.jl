@@ -4,13 +4,13 @@ at http://www.bom.gov.au/water/hrs.
 """
 module HydroRefStations
 
+using Dates: Date
 import HTTP
 import CSV
 using DataStructures: OrderedDict
 using DataFrames: DataFrame, rename, rename!, vcat, sort!
-using Dates
 
-export get_sites, get_data_types, get_data
+export HRS, get_data
 
 const HRS_URL = "http://www.bom.gov.au/water/hrs/"
 const SITES_URL = HRS_URL * "content/hrs_station_details.csv"
@@ -70,10 +70,57 @@ const URL_SUFFIXES = OrderedDict(
     "11 year moving average" => "annual_anomaly_11MA"
 )
 
-const DATA_TYPES = collect(keys(URL_SUFFIXES))
-const IMONTH = findfirst(isequal("monthly data"), DATA_TYPES)
-const ISEASON = findfirst(isequal("seasonal data"), DATA_TYPES)
-const IYEAR = findfirst(isequal("annual data"), DATA_TYPES)
+const DATA_TYPES = Dict(
+    "day" => [
+        "daily data",
+        "daily flow duration curve",
+        "event frequency analysis",
+        "event volume analysis"],
+    "month"=> [
+        "monthly data",
+        "january data",
+        "february data",
+        "march data",
+        "april data",
+        "may data",
+        "june data",
+        "july data",
+        "august data",
+        "september data",
+        "october data",
+        "november data",
+        "december data",
+        "january anomaly",
+        "february anomaly",
+        "march anomaly",
+        "april anomaly",
+        "may anomaly",
+        "june anomaly",
+        "july anomaly",
+        "august anomaly",
+        "september anomaly",
+        "october anomaly",
+        "november anomaly",
+        "december anomaly",
+        "monthly boxplot"],
+    "season" => [
+        "seasonal data",
+        "summer data",
+        "autumn data",
+        "winter data",
+        "spring data",
+        "summer anomaly",
+        "autumn anomaly",
+        "winter anomaly",
+        "spring anomaly",
+        "seasonal boxplot"],
+    "year" => [
+        "annual data",
+        "cease to flow",
+        "annual anomaly",
+        "3 year moving average",
+        "5 year moving average",
+        "11 year moving average"])
 
 const COMPOSITE_DATA_ATTRS = Dict(
     "seasonal data" => Dict(
@@ -90,22 +137,118 @@ const COMPOSITE_DATA_ATTRS = Dict(
 )
 
 """
-    data, header = get_sites()
+    hrs = HRS()
 
-Return the information of sites e.g. AWRC ID, name and location.
+Create a HRS object and download the information of HRS service sites e.g. AWRC ID, name and location.
+
+# Fields
+* `sites`: Site information table
+* `header`: Header of site information table
+* `data_types`: Types of data available at the web site
 
 # Examples
 ```julia
-julia> sites, header = get_sites();
-julia> sites
-467×8 DataFrame. Omitted printing of 6 columns
-│ Row │ AWRC Station Number │ Station Name                              │
-│     │ String              │ String                                    │
-├─────┼─────────────────────┼───────────────────────────────────────────┤
-│ 1   │ 410713              │ Paddy's River at Riverlea                 │
-│ 2   │ 410730              │ Cotter River at Gingera                   │
+julia> hrs = HRS();
+julia> hrs.sites
+467×8 DataFrame. Omitted printing of 5 columns
+│ Row │ AWRC Station Number │ Station Name                                 │ Latitude │
+│     │ String              │ String                                       │ Float64  │
+├─────┼─────────────────────┼──────────────────────────────────────────────┼──────────┤
+│ 1   │ 410713              │ Paddy's River at Riverlea                    │ -35.3843 │
+│ 2   │ 410730              │ Cotter River at Gingera                      │ -35.5917 │
+...
+
+julia> hrs.header
+6-element Array{String,1}:
+ "Australian Bureau of Meteorology"
+ "Hydrologic Reference Stations"
+...
+
+julia> hrs.data_types
+Dict{String,Array{String,1}} with 4 entries:
+  "day"    => ["daily data", "daily flow duration curve", "event frequency analysis", "event vo…
+  "month"  => ["monthly data", "january data", "february data", "march data", "april data", "ma…
+  "year"   => ["annual data", "cease to flow", "annual anomaly", "3 year moving average", "5 ye…
+  "season" => ["seasonal data", "summer data", "autumn data", "winter data", "spring data", "su…
+
+julia> hrs.data_types["year"]
+6-element Array{String,1}:
+ "annual data"
+ "cease to flow"
+ "annual anomaly"
+ "3 year moving average"
+ "5 year moving average"
+ "11 year moving average"
+
+```
+"""
+struct HRS
+    sites::DataFrame
+    header::Array{String,1}
+    data_types::Dict{String,Array{String,1}}
+
+    function HRS()
+        sites, header = get_sites()
+
+        new(sites, header, DATA_TYPES)
+    end
+end
+
+"""
+    data, header = get_data(hrs::HRS, 
+        awrc_id::AbstractString, data_type::AbstractString)
+
+Return the data of a site.
+
+# Arguments
+* `hrs`: `HRS` object
+* `awrc_id`: AWRC ID of the site. The ID can found in `hrs.sites`
+* `data_type`: Type of the data. The data type string can be found in `hrs.data_types`
+
+# Examples
+```julia
+julia> hrs = HRS();
+julia> data, header = get_data(hrs, "410730", "annual data");
+julia> data
+55×2 DataFrame
+│ Row │ Water Year (March to February) │ Annual streamflow (GL/water year) │
+│     │ Int64                          │ Float64                           │
+├─────┼────────────────────────────────┼───────────────────────────────────┤
+│ 1   │ 1964                           │ 80.3924                           │
+│ 2   │ 1965                           │ 19.7936                           │
 ...
 ```
+"""
+function get_data(hrs::HRS,
+                  awrc_id::AbstractString,
+                  data_type::AbstractString)::Tuple{DataFrame,Array{String,1}}
+
+    if findfirst(isequal(awrc_id), hrs.sites["AWRC Station Number"]) == nothing
+        throw(ArgumentError("Cannot find a site with AWRC ID, $(awrc_id)."))
+    end
+
+    url_suffix = nothing
+    try
+        url_suffix = URL_SUFFIXES[data_type]
+    catch e
+        if isa(e, KeyError)
+            throw(ArgumentError("Unsupported data type, $(data_type)."))
+        else
+            rethrow()
+        end
+    end
+
+    if length(url_suffix) > 0
+        return get_raw_data(awrc_id, data_type)
+    else
+        return get_composite_data(awrc_id, data_type)
+    end
+end
+
+"""
+    sites, header = get_sites()
+
+Download site information e.g. AWRC ID and descriptions.
 """
 function get_sites()::Tuple{DataFrame,Array{String,1}}
     r = HTTP.get(SITES_URL)
@@ -121,80 +264,8 @@ function get_sites()::Tuple{DataFrame,Array{String,1}}
 end
 
 """
-    data_types = get_data_types([tscale::AbstractString])
-
-Return an array of supported data types. Note that "monthly data" and "seasonal data" are
-used to return a time series of all monthly data (or seasonal data).
-
-# Arguments
-* `tscale`: Temporal scale. ["all", "day", "month", "season", "year"].
-            The default value is "all".
-
-# Examples
-```julia
-julia> get_data_types()
-44-element Array{String,1}:
- "daily data"
- "daily flow duration curve"
- "event frequency analysis"
- "event volume analysis"
-...
-```
-"""
-function get_data_types(tscale::AbstractString="all")::Array{String,1}
-    if tscale == "all"
-        return DATA_TYPES
-    elseif tscale == "day"
-        return DATA_TYPES[1:IMONTH-1]
-    elseif tscale == "month"
-        return DATA_TYPES[IMONTH:ISEASON-1]
-    elseif tscale == "season"
-        return DATA_TYPES[ISEASON:IYEAR-1]
-    elseif tscale == "year"
-        return DATA_TYPES[IYEAR:end]
-    else
-        throw(ArgumentError("Invalid time scale: $(tscale)"))
-    end
-end
-
-"""
-    data, header = get_data(awrc_id::AbstractString, data_type::AbstractString)
-
-Return the data of a site.
-
-# Arguments
-* `awrc_id`: AWRC ID of the site. The ID can found in the table from `get_sites()`
-* `data_type`: Type of the data. The data type string can be found in an array from `get_data_types()`
-
-# Examples
-```julia
-julia> data, header = get_data("410730", "annual data");
-julia> data
-55×2 DataFrame
-│ Row │ Water Year (March to February) │ Annual streamflow (GL/water year) │
-│     │ Int64                          │ Float64                           │
-├─────┼────────────────────────────────┼───────────────────────────────────┤
-│ 1   │ 1964                           │ 80.3924                           │
-│ 2   │ 1965                           │ 19.7936                           │
-...
-```
-"""
-function get_data(awrc_id::AbstractString,
-                  data_type::AbstractString)::Tuple{DataFrame,Array{String,1}}
-    if data_type ∉ DATA_TYPES
-        throw(ArgumentError("Unsupported data type, $(data_type)."))
-    else
-        url_suffix = URL_SUFFIXES[data_type]
-        if length(url_suffix) > 0
-            return get_raw_data(awrc_id, data_type)
-        else
-            return get_composite_data(awrc_id, data_type)
-        end
-    end
-end
-
-"""
-    data, header = get_raw_data(awrc_id::AbstractString, data_type::AbstractString)
+    data, header = get_raw_data( 
+        awrc_id::AbstractString, data_type::AbstractString)
 
 Download multiple datasets, combine them to a time series.
 """
@@ -205,13 +276,10 @@ function get_raw_data(awrc_id::AbstractString,
     r = HTTP.get(url)
 
     body_buf = IOBuffer(String(r.body))
-
     header = extract_header!(body_buf, HEADER_DELIM)
     new_header = prune_header(header, HEADER_DELIM)
-
     body_buf = seek(body_buf, 0)
     data = CSV.read(body_buf, comment=HEADER_DELIM)
-
     return data, new_header
 end
 

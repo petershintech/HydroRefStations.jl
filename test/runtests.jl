@@ -1,54 +1,42 @@
 using HydroRefStations
-const HRS = HydroRefStations
 
 using Test
 using Dates: Day
 
 @testset "HRS.jl" begin
-    @testset "get_sites()" begin
-        sites, header = HRS.get_sites()
+    @testset "HRS()" begin
+        hrs = HRS()
 
-        nrows, ncols = size(sites)
+        nrows, ncols = size(hrs.sites)
         @test nrows > 0 # At least one site.
         @test ncols > 0 # At least one column.
-        @test length(header) > 0 # At least one header line
-        @test header[1][1] != '#'
-        @test header[1][1] != ','
-        @test header[end][1] != '#'
-        @test header[end][end] != '\"'
-    end
+        @test length(hrs.header) > 0 # At least one header line
+        @test hrs.header[1][1] != '#'
+        @test hrs.header[1][1] != ','
+        @test hrs.header[end][1] != '#'
+        @test hrs.header[end][end] != '\"'
 
-    @testset "get_data_types()" begin
-        data_types = HRS.get_data_types()
-        @test length(data_types) > 0 # At least one data type.
+        @test length(hrs.data_types) > 0 # At least one data type.
 
-        test_types = ["daily data", "december data", "spring anomaly",
-                      "cease to flow", "annual data"]
-
-        for test_type in test_types
-            @test test_type in data_types
-        end
-
-        data_types = HRS.get_data_types("year")
+        data_types = hrs.data_types["year"]
         @test "annual data" in data_types
         @test "11 year moving average" in data_types
         @test "seasonal data" ∉ data_types
 
-        data_types = HRS.get_data_types("month")
+        data_types = hrs.data_types["month"]
         @test "monthly data" in data_types
         @test "monthly boxplot" in data_types
         @test "daily data" ∉ data_types
         @test "seasonal data" ∉ data_types
-
-        @test_throws ArgumentError HRS.get_data_types("invalid")
     end
 
     @testset "get_data()" begin
+        hrs = HRS()
         awrc_ids = ["410730", "114001A"]
         data_types = ["monthly data", "seasonal data"]
         for awrc_id in awrc_ids
             for data_type in data_types
-                data, header = HRS.get_data(awrc_id, data_type)
+                data, header = get_data(hrs, awrc_id, data_type)
 
                 local nrows, ncols = size(data)
                 @test nrows > 0 # At least one data point.
@@ -67,7 +55,8 @@ using Dates: Day
                     @test minimum(diff(data[!,"Start Date"][5:end-4])) >= Day(89)
                 end
             end
-            @test_throws ArgumentError HRS.get_data(awrc_id, "invalid data type")
+            @test_throws ArgumentError get_data(hrs, "invalid ID", "daily data")
+            @test_throws ArgumentError get_data(hrs, awrc_id, "invalid data type")
         end
     end
 end
