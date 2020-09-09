@@ -49,6 +49,12 @@ awrc_id = "410730"
 data, header = get_data(awrc_id, "daily data")
 ````
 
+## Disclaimer
+
+This project is not related to or endorsed by the Australian Bureau of Meteorology (BOM). 
+
+Please find copyright of materials downloaded from the Hydrologic Reference Stations website at [copyright notice](http://www.bom.gov.au/water/hrs/copyright.shtml).
+
 [travis-img]: https://travis-ci.org/petershintech/HydroRefStations.jl.svg?branch=master
 [travis-url]: https://travis-ci.org/petershintech/HydroRefStations.jl
 
