@@ -4,11 +4,12 @@ at http://www.bom.gov.au/water/hrs.
 """
 module HydroRefStations
 
+import Base.show
 using Dates: Date
 import HTTP
 import CSV
 using DataStructures: OrderedDict
-using DataFrames: DataFrame, rename, rename!, vcat, sort!
+using DataFrames: DataFrame, head, rename, rename!, vcat, sort!
 
 export HRS, get_data
 
@@ -192,6 +193,15 @@ struct HRS
 
         new(sites, header, DATA_TYPES)
     end
+end
+
+function show(io::IO, hrs::HRS)
+    for line in hrs.header[1:3]
+        println(io, line)
+    end
+    println()
+    show(io, head(hrs.sites))
+    println("...")
 end
 
 """
