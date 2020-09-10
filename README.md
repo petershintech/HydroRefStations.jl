@@ -84,7 +84,16 @@ Dict{String,Array{String,1}} with 4 entries:
 
 ````julia
 awrc_id = "410730";
-data, header = get_data(hrs, awrc_id, "daily data")
+data, header = get_data(hrs, awrc_id, "annual data");
+julia> data
+55×2 DataFrame
+│ Row │ Water Year (March to February) │ Annual streamflow (GL/water year) │
+│     │ Int64                          │ Float64                           │
+├─────┼────────────────────────────────┼───────────────────────────────────┤
+│ 1   │ 1964                           │ 80.3924                           │
+│ 2   │ 1965                           │ 19.7936                           │
+│ 3   │ 1966                           │ 57.0632                           │
+...
 ````
 
 ## Disclaimer
