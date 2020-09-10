@@ -233,7 +233,7 @@ function get_data(hrs::HRS,
                   awrc_id::AbstractString,
                   data_type::AbstractString)::Tuple{DataFrame,Array{String,1}}
 
-    if findfirst(isequal(awrc_id), hrs.sites["AWRC Station Number"]) == nothing
+    if findfirst(isequal(awrc_id), hrs.sites[!,"AWRC Station Number"]) == nothing
         throw(ArgumentError("Cannot find a site with AWRC ID, $(awrc_id)."))
     end
 
