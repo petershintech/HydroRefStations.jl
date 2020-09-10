@@ -203,7 +203,7 @@ Return the data of a site.
 # Arguments
 * `hrs`: `HRS` object
 * `awrc_id`: AWRC ID of the site. The ID can found in `hrs.sites`
-* `data_type`: Type of the data. The data type string can be found in `hrs.data_types`
+* `data_type`: Type of the data.  Data type strings can be found in `hrs.data_types`
 
 # Examples
 ```julia
