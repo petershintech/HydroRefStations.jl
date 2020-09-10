@@ -4,9 +4,8 @@ using Test
 using Dates: Day
 
 @testset "HRS.jl" begin
+    hrs = HRS()
     @testset "HRS()" begin
-        hrs = HRS()
-
         nrows, ncols = size(hrs.sites)
         @test nrows > 0 # At least one site.
         @test ncols > 0 # At least one column.
@@ -31,7 +30,6 @@ using Dates: Day
     end
 
     @testset "get_data()" begin
-        hrs = HRS()
         awrc_ids = ["410730", "114001A"]
         data_types = ["monthly data", "seasonal data"]
         for awrc_id in awrc_ids
@@ -59,4 +57,10 @@ using Dates: Day
             @test_throws ArgumentError get_data(hrs, awrc_id, "invalid data type")
         end
     end
+    @testset "show()" begin
+        show_str = repr(hrs)
+        @test occursin("Hydrologic Reference Stations", show_str)
+        @test occursin("AWRC", show_str)
+        @test occursin("Catchment", show_str)
+    end    
 end

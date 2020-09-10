@@ -199,9 +199,9 @@ function show(io::IO, hrs::HRS)
     for line in hrs.header[1:3]
         println(io, line)
     end
-    println()
+    println(io)
     show(io, head(hrs.sites))
-    println("...")
+    println(io, "...")
 end
 
 """
