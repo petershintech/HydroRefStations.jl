@@ -62,5 +62,12 @@ using Dates: Day
         @test occursin("Hydrologic Reference Stations", show_str)
         @test occursin("AWRC", show_str)
         @test occursin("Catchment", show_str)
-    end    
+    end
+    @testset "close()" begin
+        close!(hrs)
+        @test isempty(hrs.sites)
+        @test isempty(hrs.header)
+        @test isempty(hrs.data_types)
+    end
+
 end

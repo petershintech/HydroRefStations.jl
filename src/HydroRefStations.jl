@@ -11,7 +11,7 @@ import CSV
 using DataStructures: OrderedDict
 using DataFrames: DataFrame, first, rename, rename!, vcat, sort!
 
-export HRS, get_data
+export HRS, get_data, close!
 
 const HRS_URL = "http://www.bom.gov.au/water/hrs/"
 const SITES_URL = HRS_URL * "content/hrs_station_details.csv"
@@ -140,7 +140,7 @@ const COMPOSITE_DATA_ATTRS = Dict(
 """
     hrs = HRS()
 
-Create a HRS object and download the information of HRS service sites e.g. AWRC ID, name and location.
+Open the connection and download the information of HRS service sites e.g. AWRC ID, name and location.
 
 # Fields
 * `sites`: Site information table
@@ -196,12 +196,25 @@ struct HRS
 end
 
 function show(io::IO, hrs::HRS)
+    isempty(hrs.sites) && return
+
     for line in hrs.header[1:3]
         println(io, line)
     end
     println(io)
     show(io, first(hrs.sites, 6))
     println(io, "...")
+end
+
+"""
+    close!(hrs::HRS)
+
+Close the connection and reset the HRS object.
+"""
+function close!(hrs::HRS)
+    empty!(hrs.sites)
+    empty!(hrs.header)
+    empty!(hrs.data_types)
 end
 
 """
