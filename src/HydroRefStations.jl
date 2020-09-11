@@ -9,7 +9,7 @@ using Dates: Date
 import HTTP
 import CSV
 using DataStructures: OrderedDict
-using DataFrames: DataFrame, head, rename, rename!, vcat, sort!
+using DataFrames: DataFrame, first, rename, rename!, vcat, sort!
 
 export HRS, get_data
 
@@ -200,7 +200,7 @@ function show(io::IO, hrs::HRS)
         println(io, line)
     end
     println(io)
-    show(io, head(hrs.sites))
+    show(io, first(hrs.sites, 6))
     println(io, "...")
 end
 
