@@ -205,7 +205,7 @@ function show(io::IO, hrs::HRS)
 end
 
 """
-    data, header = get_data(hrs::HRS, 
+    data, header = get_data(hrs::HRS,
         awrc_id::AbstractString, data_type::AbstractString)
 
 Return the data of a site.
@@ -274,7 +274,7 @@ function get_sites()::Tuple{DataFrame,Array{String,1}}
 end
 
 """
-    data, header = get_raw_data( 
+    data, header = get_raw_data(
         awrc_id::AbstractString, data_type::AbstractString)
 
 Download multiple datasets, combine them to a time series.
