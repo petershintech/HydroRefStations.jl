@@ -9,7 +9,7 @@ using Dates: Date
 import HTTP
 import CSV
 using DataStructures: OrderedDict
-using DataFrames: DataFrame, first, rename, rename!, vcat, sort!
+using DataFrames: DataFrame, first, rename, rename!, vcat, sort!, select!
 
 export HRS, get_data, close!
 
@@ -203,6 +203,7 @@ function show(io::IO, hrs::HRS)
     end
     println(io)
     show(io, first(hrs.sites, 6))
+    println(io)
     println(io, "...")
 end
 
@@ -212,9 +213,10 @@ end
 Close the connection and reset the HRS object.
 """
 function close!(hrs::HRS)
-    empty!(hrs.sites)
+    selelet!(hrs.sites, Int[])
     empty!(hrs.header)
     empty!(hrs.data_types)
+    return
 end
 
 """
@@ -369,7 +371,7 @@ function prune_header(header::Array{String,1}, delim::AbstractString)::Array{Str
         startswith(line, delim) || throw(IOError("A header line does not start with $(delim)."))
 
         the_line = rstrip(line[2:end])
-        length(the_line) <= 0 && continue
+        isempty(the_line) && continue
         istart = 1
         i = findfirst('\"', the_line)
         (i != nothing) && (istart = i+1)
