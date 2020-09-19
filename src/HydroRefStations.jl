@@ -213,7 +213,7 @@ end
 Close the connection and reset the HRS object.
 """
 function close!(hrs::HRS)
-    selelet!(hrs.sites, Int[])
+    select!(hrs.sites, Int[])
     empty!(hrs.header)
     empty!(hrs.data_types)
     return
