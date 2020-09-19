@@ -7,7 +7,7 @@ module HydroRefStations
 import Base.show
 using Dates: Date
 import HTTP
-import CSV
+using CSV: File
 using DataStructures: OrderedDict
 using DataFrames: DataFrame, first, rename, rename!, vcat, sort!, select!
 
@@ -283,7 +283,7 @@ function get_sites()::Tuple{DataFrame,Array{String,1}}
     new_header = prune_header(header, HEADER_DELIM)
 
     body_buf = seek(body_buf, 0)
-    sites = CSV.read(body_buf, comment=HEADER_DELIM)
+    sites = DataFrame(File(body_buf, comment=HEADER_DELIM))
 
     return sites, new_header
 end
@@ -304,7 +304,7 @@ function get_raw_data(awrc_id::AbstractString,
     header = extract_header!(body_buf, HEADER_DELIM)
     new_header = prune_header(header, HEADER_DELIM)
     body_buf = seek(body_buf, 0)
-    data = CSV.read(body_buf, comment=HEADER_DELIM)
+    data = DataFrame(File(body_buf, comment=HEADER_DELIM))
     return data, new_header
 end
 
