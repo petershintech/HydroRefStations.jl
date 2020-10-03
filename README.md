@@ -49,8 +49,19 @@ julia> hrs.sites
 ├─────┼─────────────────────┼──────────────────────────────────────────────┼──────────┤
 │ 1   │ 410713              │ Paddy's River at Riverlea                    │ -35.3843 │
 │ 2   │ 410730              │ Cotter River at Gingera                      │ -35.5917 │
-│ 3   │ 410731              │ Gudgenby River at 
+│ 3   │ 410731              │ Gudgenby River at
 ...
+
+julia> names(hrs.sites)
+8-element Array{String,1}:
+ "AWRC Station Number"
+ "Station Name"
+ "Latitude"
+ "Longitude"
+ "Jurisdiction"
+ "Catchment Area (km2)"
+ "Data Owner Name"
+ "Data Owner Code"
 `````
 
 `hrs.header` shows the header of the site information. It includes the URL of the website and the version of data available.
@@ -78,13 +89,26 @@ Dict{String,Array{String,1}} with 4 entries:
 
 ````
 
+If you want to check data types of yearly data,
+
+````julia
+julia> hrs.data_types["year"]
+6-element Array{String,1}:
+ "annual data"
+ "cease to flow"
+ "annual anomaly"
+ "3 year moving average"
+ "5 year moving average"
+ "11 year moving average"
+````
+
 ## Data
 
 `get_data()` returns data as `DataFrames.DataFrame`. The method needs AWRC ID and data type. The AWRC ID of a station can be found in `hrs.sites` and the string of a data type can be found in the array from `hrs.data_types`.
 
 ````julia
-awrc_id = "410730";
-data, header = get_data(hrs, awrc_id, "annual data");
+julia> awrc_id = "410730";
+julia> data, header = get_data(hrs, awrc_id, "annual data");
 julia> data
 55×2 DataFrame
 │ Row │ Water Year (March to February) │ Annual streamflow (GL/water year) │
@@ -98,7 +122,7 @@ julia> data
 
 ## Disclaimer
 
-This project is not related to or endorsed by the Australian Bureau of Meteorology (BOM). 
+This project is not related to or endorsed by the Australian Bureau of Meteorology (BOM).
 
 Please find copyright of materials downloaded from the Hydrologic Reference Stations website at [copyright notice](http://www.bom.gov.au/water/hrs/copyright.shtml).
 
