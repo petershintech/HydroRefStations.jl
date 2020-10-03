@@ -89,7 +89,7 @@ Dict{String,Array{String,1}} with 4 entries:
 
 ````
 
-If you want to check data types of yearly data,
+If you want to check data types at the annual time scale,
 
 ````julia
 julia> hrs.data_types["year"]
