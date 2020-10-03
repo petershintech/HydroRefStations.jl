@@ -56,6 +56,8 @@ using Dates: Day
             @test_throws ArgumentError get_data(hrs, "invalid ID", "daily data")
             @test_throws ArgumentError get_data(hrs, awrc_id, "invalid data type")
         end
+
+        data, header = get_data(hrs, awrc_ids[1], "SEASONAL DATA")
     end
     @testset "show()" begin
         show_str = repr(hrs)

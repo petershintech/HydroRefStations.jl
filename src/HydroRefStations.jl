@@ -252,6 +252,8 @@ function get_data(hrs::HRS,
         throw(ArgumentError("cannot find a site with AWRC ID, $(awrc_id)."))
     end
 
+    data_type = lowercase(data_type)
+
     url_suffix = nothing
     try
         url_suffix = URL_SUFFIXES[data_type]
