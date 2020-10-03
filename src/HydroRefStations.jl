@@ -248,8 +248,8 @@ function get_data(hrs::HRS,
                   awrc_id::AbstractString,
                   data_type::AbstractString)::Tuple{DataFrame,Array{String,1}}
 
-    if findfirst(isequal(awrc_id), hrs.sites[!,"AWRC Station Number"]) == nothing
-        throw(ArgumentError("Cannot find a site with AWRC ID, $(awrc_id)."))
+    if findfirst(isequal(awrc_id), hrs.sites[!,"AWRC Station Number"]) === nothing
+        throw(ArgumentError("cannot find a site with AWRC ID, $(awrc_id)."))
     end
 
     url_suffix = nothing
@@ -257,7 +257,7 @@ function get_data(hrs::HRS,
         url_suffix = URL_SUFFIXES[data_type]
     catch e
         if isa(e, KeyError)
-            throw(ArgumentError("Unsupported data type, $(data_type)."))
+            throw(ArgumentError("unsupported data type, $(data_type)."))
         else
             rethrow()
         end
